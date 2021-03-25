@@ -27,6 +27,7 @@ using Ryujinx.Common.Logging;
 using Ryujinx.Common.System;
 using Ryujinx.Configuration;
 using Ryujinx.Graphics.GAL;
+using Ryujinx.Graphics.GAL.Multithreading;
 using Ryujinx.Graphics.OpenGL;
 using Ryujinx.HLE.FileSystem;
 using Ryujinx.HLE.FileSystem.Content;
@@ -375,6 +376,8 @@ namespace Ryujinx.Ui
         {
             _virtualFileSystem.Reload();
 
+            bool threadedGAL = true;
+
             IRenderer renderer;
 
             if (UseVulkan)
@@ -384,6 +387,11 @@ namespace Ryujinx.Ui
             else
             {
                 renderer = new Renderer();
+            }
+
+            if (threadedGAL)
+            {
+                renderer = new ThreadedRenderer(renderer);
             }
 
             IHardwareDeviceDriver deviceDriver = new DummyHardwareDeviceDriver();
