@@ -379,7 +379,7 @@ namespace Ryujinx.Ui
             if (ConfigurationState.Instance.Graphics.GraphicsBackend == GraphicsBackend.Vulkan)
             {
                 renderer = new VulkanGraphicsDevice((instance, vk) => new SurfaceKHR((ulong)((VKRenderer)RendererWidget).CreateWindowSurface(instance.Handle)),
-                                                    VulkanHelper.GetRequiredInstanceExtensions());
+                                                    VulkanHelper.GetRequiredInstanceExtensions);
             }
             else
             {

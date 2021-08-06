@@ -6,7 +6,6 @@ using Ryujinx.Graphics.GAL;
 using Ryujinx.HLE;
 using Ryujinx.HLE.HOS.Applets;
 using Ryujinx.HLE.HOS.Services.Am.AppletOE.ApplicationProxyService.ApplicationProxy.Types;
-using Ryujinx.HLE.HOS.Services.Hid;
 using Ryujinx.Input;
 using Ryujinx.Input.HLE;
 using Ryujinx.SDL2.Common;
@@ -130,21 +129,28 @@ namespace Ryujinx.Headless.SDL2
             }
         }
 
+        protected abstract void InitializeWindowRenderer();
+
         protected abstract void InitializeRenderer();
 
-        protected abstract void FinalizeRenderer();
+        protected abstract void FinalizeWindowRenderer();
 
         protected abstract void SwapBuffers();
 
-        protected abstract string GetGpuVendorName();
-
         public abstract SDL_WindowFlags GetWindowFlags();
+
+        private string GetGpuVendorName()
+        {
+            return Renderer.GetHardwareInfo().GpuVendor;
+        }
 
         public void Render()
         {
-            InitializeRenderer();
+            InitializeWindowRenderer();
 
             Device.Gpu.Renderer.Initialize(_glLogLevel);
+
+            InitializeRenderer();
 
             _gpuVendorName = GetGpuVendorName();
 
@@ -195,7 +201,7 @@ namespace Ryujinx.Headless.SDL2
                 }
             }
 
-            FinalizeRenderer();
+            FinalizeWindowRenderer();
         }
 
         public void Exit()
