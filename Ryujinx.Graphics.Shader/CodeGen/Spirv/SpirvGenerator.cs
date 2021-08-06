@@ -107,11 +107,6 @@ namespace Ryujinx.Graphics.Shader.CodeGen.Spirv
                 {
                     for (int attr = 0; attr < Declarations.MaxAttributes; attr++)
                     {
-                        if (info.Outputs.Contains(attr))
-                        {
-                            continue;
-                        }
-
                         if (context.Config.Options.Flags.HasFlag(TranslationFlags.Feedback))
                         {
                             throw new NotImplementedException();

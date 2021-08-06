@@ -69,11 +69,6 @@ namespace Ryujinx.Graphics.Shader.CodeGen.Glsl
                 {
                     for (int attr = 0; attr < Declarations.MaxAttributes; attr++)
                     {
-                        if (info.OAttributes.Contains(attr))
-                        {
-                            continue;
-                        }
-
                         if (context.Config.Options.Flags.HasFlag(TranslationFlags.Feedback))
                         {
                             context.AppendLine($"{DefaultNames.OAttributePrefix}{attr}_x = 0.0;");
