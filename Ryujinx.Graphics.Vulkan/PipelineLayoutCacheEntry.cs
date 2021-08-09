@@ -11,8 +11,6 @@ namespace Ryujinx.Graphics.Vulkan
         public DescriptorSetLayout[] DescriptorSetLayouts { get; }
         public PipelineLayout PipelineLayout { get; }
 
-        public DescriptorSetCache DescriptorSetCache { get; }
-
         private readonly List<Auto<DescriptorSetCollection>>[][] _dsCache;
         private readonly int[] _dsCacheCursor;
         private int _dsLastCbIndex;
@@ -27,8 +25,6 @@ namespace Ryujinx.Graphics.Vulkan
 
             DescriptorSetLayouts = PipelineLayoutFactory.Create(gd, device, stages, out var pipelineLayout);
             PipelineLayout = pipelineLayout;
-
-            DescriptorSetCache = new DescriptorSetCache(gd, DescriptorSetLayouts);
 
             _dsCache = new List<Auto<DescriptorSetCollection>>[CommandBufferPool.MaxCommandBuffers][];
 

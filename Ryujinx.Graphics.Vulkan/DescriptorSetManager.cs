@@ -26,9 +26,12 @@ namespace Ryujinx.Graphics.Vulkan
 
                 var poolSizes = new DescriptorPoolSize[]
                 {
-                    new DescriptorPoolSize(DescriptorType.UniformBuffer, Constants.MaxUniformBufferBindings * DescriptorPoolMultiplier),
+                    new DescriptorPoolSize(DescriptorType.UniformBuffer, (1 + Constants.MaxUniformBufferBindings) * DescriptorPoolMultiplier),
                     new DescriptorPoolSize(DescriptorType.StorageBuffer, Constants.MaxStorageBufferBindings * DescriptorPoolMultiplier),
-                    new DescriptorPoolSize(DescriptorType.CombinedImageSampler, Constants.MaxTextureBindings * DescriptorPoolMultiplier)
+                    new DescriptorPoolSize(DescriptorType.CombinedImageSampler, Constants.MaxTextureBindings * DescriptorPoolMultiplier),
+                    new DescriptorPoolSize(DescriptorType.StorageImage, Constants.MaxImageBindings * DescriptorPoolMultiplier),
+                    new DescriptorPoolSize(DescriptorType.UniformTexelBuffer, Constants.MaxTextureBindings * DescriptorPoolMultiplier),
+                    new DescriptorPoolSize(DescriptorType.StorageTexelBuffer, Constants.MaxImageBindings * DescriptorPoolMultiplier)
                 };
 
                 uint maxSets = (uint)poolSizes.Length * DescriptorPoolMultiplier;
@@ -68,6 +71,7 @@ namespace Ryujinx.Graphics.Vulkan
                             DescriptorSetCount = (uint)layouts.Length,
                             PSetLayouts = pLayouts
                         };
+
                         Api.AllocateDescriptorSets(Device, &descriptorSetAllocateInfo, pDescriptorSets).ThrowOnError();
                     }
                 }
