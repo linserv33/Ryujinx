@@ -54,9 +54,18 @@ namespace Ryujinx.Graphics.Vulkan
 
             public unsafe DescriptorSetCollection AllocateDescriptorSets(ReadOnlySpan<DescriptorSetLayout> layouts)
             {
+                TryAllocateDescriptorSets(layouts, isTry: false, out var dsc);
+                return dsc;
+            }
+
+            public bool TryAllocateDescriptorSets(ReadOnlySpan<DescriptorSetLayout> layouts, out DescriptorSetCollection dsc)
+            {
+                return TryAllocateDescriptorSets(layouts, isTry: true, out dsc);
+            }
+
+            private unsafe bool TryAllocateDescriptorSets(ReadOnlySpan<DescriptorSetLayout> layouts, bool isTry, out DescriptorSetCollection dsc)
+            {
                 Debug.Assert(!_done);
-                _totalSets += layouts.Length;
-                _setsInUse += layouts.Length;
 
                 DescriptorSet[] descriptorSets = new DescriptorSet[layouts.Length];
 
@@ -72,11 +81,25 @@ namespace Ryujinx.Graphics.Vulkan
                             PSetLayouts = pLayouts
                         };
 
-                        Api.AllocateDescriptorSets(Device, &descriptorSetAllocateInfo, pDescriptorSets).ThrowOnError();
+                        var result = Api.AllocateDescriptorSets(Device, &descriptorSetAllocateInfo, pDescriptorSets);
+                        if (isTry && result == Result.ErrorOutOfPoolMemory)
+                        {
+                            _totalSets = (int)_capacity;
+                            _done = true;
+                            DestroyIfDone();
+                            dsc = default;
+                            return false;
+                        }
+
+                        result.ThrowOnError();
                     }
                 }
 
-                return new DescriptorSetCollection(this, descriptorSets);
+                _totalSets += layouts.Length;
+                _setsInUse += layouts.Length;
+
+                dsc = new DescriptorSetCollection(this, descriptorSets);
+                return true;
             }
 
             public void FreeDescriptorSets(DescriptorSetCollection dsc)
@@ -140,7 +163,13 @@ namespace Ryujinx.Graphics.Vulkan
 
         public Auto<DescriptorSetCollection> AllocateDescriptorSets(Vk api, ReadOnlySpan<DescriptorSetLayout> layouts)
         {
-            return new Auto<DescriptorSetCollection>(GetPool(api, layouts.Length).AllocateDescriptorSets(layouts));
+            // If we fail the first time, just create a new pool and try again.
+            if (!GetPool(api, layouts.Length).TryAllocateDescriptorSets(layouts, out var dsc))
+            {
+                dsc = GetPool(api, layouts.Length).AllocateDescriptorSets(layouts);
+            }
+
+            return new Auto<DescriptorSetCollection>(dsc);
         }
 
         private DescriptorPoolHolder GetPool(Vk api, int requiredCount)
