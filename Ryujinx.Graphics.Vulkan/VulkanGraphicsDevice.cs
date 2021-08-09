@@ -21,7 +21,6 @@ namespace Ryujinx.Graphics.Vulkan
         private PhysicalDevice _physicalDevice;
         private Device _device;
         private Window _window;
-        private string[] _requiredExtensions;
 
         internal FormatCapabilities FormatCapabilities { get; private set; }
         internal HardwareCapabilities Capabilities { get; private set; }
@@ -68,6 +67,7 @@ namespace Ryujinx.Graphics.Vulkan
         public IWindow Window => _window;
 
         private Func<Instance, Vk, SurfaceKHR> GetSurface;
+        private Func<string[]> GetRequiredExtensions;
 
         internal Vendor Vendor { get; private set; }
         public string GpuVendor { get; private set; }
@@ -76,23 +76,22 @@ namespace Ryujinx.Graphics.Vulkan
 
         public event EventHandler<ScreenCaptureImageInfo> ScreenCaptured;
 
-        public VulkanGraphicsDevice(Func<Instance, Vk, SurfaceKHR> surfaceFunc, string[] requiredExtensions)
+        public VulkanGraphicsDevice(Func<Instance, Vk, SurfaceKHR> surfaceFunc, Func<string[]> requiredExtensionsFunc)
         {
             GetSurface = surfaceFunc;
+            GetRequiredExtensions = requiredExtensionsFunc;
             Shaders = new HashSet<ShaderCollection>();
             Textures = new HashSet<ITexture>();
             Samplers = new HashSet<SamplerHolder>();
-
-            _requiredExtensions = requiredExtensions;
         }
 
-        private void SetupContext(GraphicsDebugLevel logLevel, string[] requiredExtensions)
+        private void SetupContext(GraphicsDebugLevel logLevel)
         {
             var api = Vk.GetApi();
 
             Api = api;
 
-            _instance = VulkanInitialization.CreateInstance(api, logLevel, requiredExtensions, out ExtDebugReport debugReport, out _debugReportCallback);
+            _instance = VulkanInitialization.CreateInstance(api, logLevel, GetRequiredExtensions(), out ExtDebugReport debugReport, out _debugReportCallback);
 
             DebugReportApi = debugReport;
 
@@ -312,7 +311,7 @@ namespace Ryujinx.Graphics.Vulkan
 
         public void Initialize(GraphicsDebugLevel logLevel)
         {
-            SetupContext(logLevel, _requiredExtensions);
+            SetupContext(logLevel);
 
             PrintGpuInformation();
         }
